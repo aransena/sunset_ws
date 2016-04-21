@@ -21,6 +21,7 @@ public class TeleopFragment extends Fragment {
     private final String LOG_TAG = TeleopFragment.class.getSimpleName();
 
     private TeleopControl mTeleopControl;
+    private SemiAutoControl mSemiAutoControl;
 
     public TeleopFragment(){
     }
@@ -41,6 +42,23 @@ public class TeleopFragment extends Fragment {
         FrameLayout fl = (FrameLayout) rootView.findViewById(R.id.teleop_frame);
         mTeleopControl = new TeleopControl(getContext());
         fl.addView(mTeleopControl);
+
+        Log.v(LOG_TAG, "Getting frame");
+        FrameLayout fl2 = (FrameLayout) rootView.findViewById(R.id.semiauto_frame);
+        if(fl2==null){
+            Log.v(LOG_TAG,"id not found");
+        }else{
+        Log.v(LOG_TAG,"Getting mSemiA");
+        mSemiAutoControl = new SemiAutoControl(getContext());
+        Log.v(LOG_TAG,"Adding semi view");
+        try {
+            fl2.addView(mSemiAutoControl);
+        }catch(Exception e){
+            Log.v(LOG_TAG,e.toString());
+        }
+        Log.v(LOG_TAG, "Added semi view");
+        }
+
 
         mTeleopControl.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -65,6 +83,23 @@ public class TeleopFragment extends Fragment {
                 return true;
             }
 
+        });
+
+        mSemiAutoControl.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                int touchCount = event.getPointerCount();
+                if(event.getAction()==MotionEvent.ACTION_UP){
+                    touchCount=-1;
+                    mTeleopControl.sendStop();
+                    mTeleopControl.pauseNetComms();
+                }
+                mSemiAutoControl.setControlLevel(touchCount);
+                mSemiAutoControl.invalidate();
+                mTeleopControl.setControlLevel(touchCount);
+                mTeleopControl.invalidate();
+                return true;
+            }
         });
 
 

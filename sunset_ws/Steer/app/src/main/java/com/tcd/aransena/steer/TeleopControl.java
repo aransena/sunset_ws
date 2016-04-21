@@ -40,6 +40,8 @@ public class TeleopControl extends View {
     private long mMetCommRate = 20;
     private JSONObject mNetMessage;
 
+    private int mTouchCount;
+
     private int mW;
     private int mH;
 
@@ -71,7 +73,7 @@ public class TeleopControl extends View {
                 Log.v("Websocket", "Received >" + s + "<");
                 if(s.equals("USER")){
                     Log.v("Websocket", "Starting net comms");
-                    mHandler.postDelayed(netComms, mMetCommRate);
+                    //mHandler.postDelayed(netComms, mMetCommRate);
                 }
             }
 
@@ -102,6 +104,11 @@ public class TeleopControl extends View {
         mWebSocket.close();
     }
 
+    public void pauseNetComms(){
+        mHandler.removeCallbacks(netComms);
+    }
+
+
 
     public TeleopControl(Context context){//, AttributeSet attrs){
         //super(context,attrs);
@@ -124,12 +131,19 @@ public class TeleopControl extends View {
 
         clearCanvas(canvas);
 
-        if(mMotionEvent==null) {
+        //Log.v(LOG_TAG,String.valueOf(mTouchCount));
+
+        if(mTouchCount<1) {
+            if (mMotionEvent == null) {
+                drawStandbyCircle(canvas);
+            } else {
+                drawTouchCircle(canvas);
+            }
+        }else{
             drawStandbyCircle(canvas);
+            mHandler.postDelayed(netComms,mMetCommRate);
         }
-        else{
-            drawTouchCircle(canvas);
-        }
+
         super.onDraw(canvas);
     }
 
@@ -147,12 +161,12 @@ public class TeleopControl extends View {
         mTPaint.setColor(getResources().getColor(R.color.colorPrimaryDark));
         mTPaint.setStyle(Paint.Style.FILL);
 
-        mMotionEventX = mMotionEvent.getX()-mOffsetInfo[0];
-        mMotionEventY = mMotionEvent.getY()-mOffsetInfo[1];
+        mMotionEventX = mMotionEvent.getRawX()-mOffsetInfo[0];
+        mMotionEventY = mMotionEvent.getRawY()-mOffsetInfo[1];
 
         if(mMotionEvent.getAction()==MotionEvent.ACTION_DOWN){
-
-            try {
+            mHandler.postDelayed(netComms,mMetCommRate);
+             try {
                 mNetMessage.put("ControlLevel", 1);
             }catch(JSONException e){
                 e.printStackTrace();
@@ -175,7 +189,7 @@ public class TeleopControl extends View {
                 //float angle = calcAngle();
                 float maxSpeed = 1.5f;
                 float vel = (mCircY-mMotionEventY)/(canvas.getWidth()/2)*maxSpeed;
-                float angle = (mCircY-mMotionEventX)/(canvas.getWidth()/2)*maxSpeed;
+                float angle = (mCircX-mMotionEventX)/(canvas.getWidth()/2)*maxSpeed;
                 /*if(mCircY<mMotionEventY){
                     vel = vel*-1;
                 }*/
@@ -188,6 +202,8 @@ public class TeleopControl extends View {
 
         }
         else if(mMotionEvent.getAction()==MotionEvent.ACTION_UP){
+            sendStop();
+            mHandler.removeCallbacks(netComms);
             mMotionEvent=null;
             drawStandbyCircle(canvas);
             try {
@@ -283,6 +299,26 @@ public class TeleopControl extends View {
         mMainCircPaint.setColor(getResources().getColor(R.color.colorPrimaryDark));
         mMainCircPaint.setStyle(Paint.Style.FILL);
         //mMainCircPaint.setShader(new RadialGradient(mCircX, mCircY, calcRadius(), Color.WHITE, getResources().getColor(R.color.colorPrimaryDark), Shader.TileMode.CLAMP));
+    }
+
+    public void setControlLevel(int touchCount){
+        mTouchCount = touchCount;
+        try {
+            mNetMessage.put("ControlLevel", (touchCount + 1));
+        }catch(JSONException e){
+            e.printStackTrace();
+        }
+    }
+
+    public void sendStop(){
+        try {
+            mNetMessage.put("ControlLevel", 0);
+            mNetMessage.put("VEL", 0);
+            mNetMessage.put("ANGLE", 0);
+            mWebSocket.send(mNetMessage.toString());
+        }catch(JSONException e){
+            e.printStackTrace();
+        }
     }
 
 
