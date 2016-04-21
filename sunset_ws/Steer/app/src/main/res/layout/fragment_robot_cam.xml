@@ -1,0 +1,31 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.tcd.aransena.steer.RobotCamFragment">
+
+
+    <WebView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:id="@+id/robot_cam_videoview"
+        android:layout_weight="2"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="4"
+        android:text="Hello"
+        android:id="@+id/textView"
+        android:textIsSelectable="false"
+        android:textSize="@dimen/abc_alert_dialog_button_bar_height" />
+
+    <!--<VideoView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/robot_cam_videoview"
+        android:layout_gravity="center" />-->
+
+
+</LinearLayout>
