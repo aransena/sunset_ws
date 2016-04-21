@@ -5,6 +5,7 @@ import android.media.MediaPlayer;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.MediaController;
 import android.net.Uri;
@@ -41,7 +42,7 @@ public class RobotCamFragment extends Fragment {
     //private String mParam1;
     // private String mParam2;
 
-   // private OnFragmentInteractionListener mListener;
+    // private OnFragmentInteractionListener mListener;
 
     public RobotCamFragment() {
         // Required empty public constructor
@@ -64,7 +65,6 @@ public class RobotCamFragment extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }*/
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,41 +99,55 @@ public class RobotCamFragment extends Fragment {
         videoView.requestFocus();
         videoView.start();
         */
-        mWebView.setInitialScale(getScale());
+
+
         mWebView.loadUrl(mUrl);
+        //Log.v(LOG_TAG, String.valueOf(mWebView.getProgress()));
 
+        mWebView.setWebViewClient(new WebViewClient() {
 
-        mWebView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                    if(mUrl==sRgbUrl){
-                        mUrl=sDepthUrl;
-                    }else{
-                        mUrl=sRgbUrl;
-                    }
+            public void onPageFinished(WebView view, String url) {
                 mWebView.setInitialScale(getScale());
-                mWebView.loadUrl(mUrl);
-
-                return false;
+                // do your stuff here
             }
         });
-        //videoView.requestFocus();
-        //videoView.start();
-        //mc.show();
-        Log.v(LOG_TAG, "in fragment");
 
-        return rootView;
-    }
+        mWebView.setOnTouchListener(new View.OnTouchListener() {
 
-    private int getScale(){
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    if (mUrl == sRgbUrl) {
+                        mUrl = sDepthUrl;
+                    } else {
+                        mUrl = sRgbUrl;
+                    }
+                    //mWebView.setInitialScale(getScale());
+                    Log.v(LOG_TAG, mUrl);
+                    mWebView.loadUrl(mUrl);
+
+                    return true;
+                }
+                return false;
+
+            }
+        });
+
+            //videoView.requestFocus();
+            //videoView.start();
+            //mc.show();
+            Log.v(LOG_TAG,"in fragment");
+
+            return rootView;
+        }
+
+    private int getScale() {
 
         int width = mWebView.getWidth();
-        Double val = new Double(width)/new Double(640);
+        Double val = new Double(width) / new Double(640);
         val = val * 100d;
         return val.intValue();
     }
-
-
 
 
     // TODO: Rename method, update argument and hook method into UI event

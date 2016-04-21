@@ -19,18 +19,18 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.content_main);
-        Log.v(LOG_TAG,Integer.toString(R.id.robot_activity_container));
-        //setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.robot_activity_container, new RobotCamFragment())
+                    .add(R.id.upper_container, new RobotCamFragment())
                     .commit();
-            Log.v(LOG_TAG, "added fragment");
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.lower_container, new TeleopFragment())
+                    .commit();
+
         }
 
 
-        setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
