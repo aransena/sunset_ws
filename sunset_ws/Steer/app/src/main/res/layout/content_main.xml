@@ -33,11 +33,4 @@
 
    </FrameLayout>
 
-    <FrameLayout
-        android:layout_gravity="center_horizontal|bottom"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:id="@+id/semiauto_frame"
-        android:layout_weight="1"></FrameLayout>
-
 </LinearLayout>
