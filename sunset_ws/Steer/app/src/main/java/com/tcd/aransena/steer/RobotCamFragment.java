@@ -78,29 +78,12 @@ public class RobotCamFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-
         View rootView = inflater.inflate(R.layout.fragment_robot_cam, container, false);
 
         //final VideoView videoView = (VideoView) rootView.findViewById(R.id.robot_cam_videoview);
         mWebView = (WebView) rootView.findViewById(R.id.robot_cam_videoview);
-        //MediaController mc = new MediaController(getActivity());
-        //mc.setMediaPlayer(videoView);
-        //mc.setAnchorView(videoView);
-        //videoView.setMediaController(mc);
-        //Uri uri=Uri.parse("rtsp://r2---sn-a5m7zu76.c.youtube.com/Ck0LENy73wIaRAnTmlo5oUgpQhMYESARFEgGUg5yZWNvbW1lbmRhdGlvbnIhAWL2kyn64K6aQtkZVJdTxRoO88HsQjpE1a8d1GxQnGDmDA==/0/0/0/video.3gp");
-        //videoView.setVideoURI(uri);
-        //String sUrl = "http://www.ebookfrenzy.com/android_book/movie.mp4";
-
 
         mUrl = sRgbUrl;
-
-        /*
-        videoView.setVideoPath(sUrl);
-        videoView.requestFocus();
-        videoView.start();
-        */
-
-
         mWebView.loadUrl(mUrl);
         //Log.v(LOG_TAG, String.valueOf(mWebView.getProgress()));
 
@@ -122,7 +105,7 @@ public class RobotCamFragment extends Fragment {
                     } else {
                         mUrl = sRgbUrl;
                     }
-                    //mWebView.setInitialScale(getScale());
+
                     Log.v(LOG_TAG, mUrl);
                     mWebView.loadUrl(mUrl);
 
@@ -150,42 +133,4 @@ public class RobotCamFragment extends Fragment {
     }
 
 
-    // TODO: Rename method, update argument and hook method into UI event
-    /*public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }*/
-
-    /*@Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }*/
-
-    /*@Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }*/
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    /*public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
-    }*/
 }
