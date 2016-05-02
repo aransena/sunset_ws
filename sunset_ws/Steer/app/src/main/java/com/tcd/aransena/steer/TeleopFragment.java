@@ -43,14 +43,14 @@ public class TeleopFragment extends Fragment {
         mTeleopControl = new TeleopControl(getContext());
         fl.addView(mTeleopControl);
 
-        Log.v(LOG_TAG, "Getting frame");
+        //Log.v(LOG_TAG, "Getting frame");
         FrameLayout fl2 = (FrameLayout) rootView.findViewById(R.id.semiauto_frame);
         if(fl2==null){
             Log.v(LOG_TAG,"id not found");
         }else{
-        Log.v(LOG_TAG,"Getting mSemiA");
+        //Log.v(LOG_TAG,"Getting mSemiA");
         mSemiAutoControl = new SemiAutoControl(getContext());
-        Log.v(LOG_TAG,"Adding semi view");
+        //Log.v(LOG_TAG,"Adding semi view");
         try {
             fl2.addView(mSemiAutoControl);
         }catch(Exception e){

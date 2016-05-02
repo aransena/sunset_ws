@@ -9,4 +9,50 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_start">StartActivity</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Strings related to Settings -->
+
+
+    <!-- Network settings -->
+    <string name="pref_header_network">Network</string>
+    <string name="pref_title_ip">Robot IP Address</string>
+    <string name="pref_default_ip">192.168.1.102</string>
+    <string name="pref_key_ip">ip</string>
+
+    <string name="pref_title_ws">Websocket Port</string>
+    <string name="pref_default_ws">8888</string>
+    <string name="pref_key_ws">ws</string>
+
+    <string name="pref_title_cam_sock">Robot Camera Port</string>
+    <string name="pref_default_cam_sock">8080</string>
+    <string name="pref_key_cam_sock">cam_sock</string>
+
+
+    <!-- Control settings -->
+
+    <string name="pref_title_control_modes">Set Robot Control Mode</string>
+    <string name="pref_key_control_mode">control_mode</string>
+    <string name="pref_default_control_mode">Mode 1</string>
+    <string name="pref_header_control_params">Control</string>
+    <string-array name="pref_control_mode_titles">
+        <item>Mode 1</item>
+        <item>Mode 2</item>
+        <item>Mode 3</item>
+    </string-array>
+    <string-array name="pref_control_mode_values">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+    <string name="pref_title_max_vel">Set Robot Max Speed</string>
+    <string name="pref_default_max_vel">1.5</string>
+    <string name="pref_key_max_vel">max_vel</string>
+
+
+
+    <string name="pref_location_key">IE</string>
+    <string name="pref_units_key">C</string>
+
 </resources>

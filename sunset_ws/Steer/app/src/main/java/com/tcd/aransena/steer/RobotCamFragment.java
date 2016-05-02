@@ -1,7 +1,9 @@
 package com.tcd.aransena.steer;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.media.MediaPlayer;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.webkit.WebView;
@@ -16,6 +18,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.VideoView;
 
+import java.net.URI;
+
 
 /**
  * A simple {@link Fragment} subclass.
@@ -28,8 +32,12 @@ import android.widget.VideoView;
 public class RobotCamFragment extends Fragment {
 
     private String mUrl = "";
-    private String sRgbUrl = "http://192.168.1.102:8080/stream?topic=/camera/rgb/image_raw";
-    private String sDepthUrl = "http://192.168.1.102:8080/stream?topic=/camera/depth/image_raw";
+
+    //private String sRgbUrl = "httpf://192.168.0.12:8080/stream?topic=/camera/rgb/image_raw&quality=15";
+    //private String sDepthUrl = "http://192.168.0.12:8080/stream?topic=/camera/depth/image&quality=15";
+    private String sRgbUrl = "";
+    private String sDepthUrl = "";
+
     private WebView mWebView;
 
     private final String LOG_TAG = RobotCamFragment.class.getSimpleName();
@@ -67,6 +75,17 @@ public class RobotCamFragment extends Fragment {
     }*/
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Context context = getContext();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String ip = prefs.getString(context.getString(R.string.pref_key_ip), context.getString(R.string.pref_default_ip));
+        String cam_sock = prefs.getString(context.getString(R.string.pref_key_cam_sock),context.getString(R.string.pref_default_cam_sock));
+
+        String cam_url = "http://" +ip + ":" + cam_sock;
+
+        sRgbUrl = cam_url+"/stream?topic=/camera/rgb/image_raw&quality=15";
+        sDepthUrl = cam_url+"/stream?topic=/camera/depth/image&quality=15";
+
+        //Log.v("cam_url: ", cam_url);
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             //mParam1 = getArguments().getString(ARG_PARAM1);
@@ -106,7 +125,7 @@ public class RobotCamFragment extends Fragment {
                         mUrl = sRgbUrl;
                     }
 
-                    Log.v(LOG_TAG, mUrl);
+                    //Log.v(LOG_TAG, mUrl);
                     mWebView.loadUrl(mUrl);
 
                     return true;
@@ -119,7 +138,7 @@ public class RobotCamFragment extends Fragment {
             //videoView.requestFocus();
             //videoView.start();
             //mc.show();
-            Log.v(LOG_TAG,"in fragment");
+            //Log.v(LOG_TAG,"in fragment");
 
             return rootView;
         }

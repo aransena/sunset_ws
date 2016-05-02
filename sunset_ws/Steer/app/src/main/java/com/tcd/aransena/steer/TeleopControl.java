@@ -1,6 +1,7 @@
 package com.tcd.aransena.steer;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
@@ -12,6 +13,7 @@ import android.graphics.RadialGradient;
 import android.graphics.RectF;
 import android.graphics.Shader;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -35,6 +37,8 @@ public class TeleopControl extends View {
     private MotionEvent mMotionEvent;
     private float mMotionEventX;
     private float mMotionEventY;
+    private int mControlMode;
+    private float mMaxVel;
 
 
     private WebSocketClient mWebSocket;
@@ -56,23 +60,29 @@ public class TeleopControl extends View {
     private Paint mMainCircPaint;
     private float mTWidth = 0.0f;
 
-    public void connect_to_server(){
+    float mCanvW=0;
+    float mCanvH=0;
+
+    public void connect_to_server(String uri_s){
+
         URI uri=null;
+        Log.v(LOG_TAG,"uri_s: "+uri_s);
         try{
-            uri = new URI("ws://192.168.1.102:8888/ws");
+            //uri = new URI("ws://192.168.1.102:8888/ws");
+            uri = new URI(uri_s);
         }catch(URISyntaxException e){
             e.printStackTrace();
         }
         mWebSocket = new WebSocketClient(uri) {
             @Override
             public void onOpen(ServerHandshake serverHandshake) {
-                Log.v("Websocket", "Opened");
+                //Log.v("Websocket", "Opened");
                 mWebSocket.send("USER");
             }
 
             @Override
             public void onMessage(String s) {
-                Log.v("Websocket", "Received >" + s + "<");
+                //Log.v("Websocket", "Received >" + s + "<");
                 if(s.equals("USER")){
                     Log.v("Websocket", "Starting net comms");
                     //mHandler.postDelayed(netComms, mMetCommRate);
@@ -81,7 +91,7 @@ public class TeleopControl extends View {
 
             @Override
             public void onClose(int code, String s, boolean b) {
-                Log.v("Websocket", code + ": Closed " + s);
+                //Log.v("Websocket", code + ": Closed " + s);
 
             }
 
@@ -125,12 +135,9 @@ public class TeleopControl extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        mCanvW = canvas.getWidth();
+        mCanvH = canvas.getHeight();
 
-        int cW = canvas.getWidth();
-        int cH = canvas.getHeight();
-        mW = cW;
-        mH = cH;
-        int mode = 1;
         clearCanvas(canvas);
 
         //Log.v(LOG_TAG,String.valueOf(mTouchCount));
@@ -139,10 +146,12 @@ public class TeleopControl extends View {
             if (mMotionEvent == null) {
                 drawStandbyCircle(canvas);
             } else {
-                if(mode==0) {
-                    drawTouchCircle(canvas);
-                }else{
+                if(mControlMode==1) {
+                    drawTouchCircle_mode1(canvas);
+                }else if(mControlMode==2){
                     drawTouchCircle_mode2(canvas);
+                }else{
+                    drawTouchCircle_mode3(canvas);
                 }
             }
         }else{
@@ -157,10 +166,11 @@ public class TeleopControl extends View {
         mTPaint.setColor(getResources().getColor(R.color.colorAccent));
         mTPaint.setStyle(Paint.Style.STROKE);
         mTPaint.setPathEffect(new DashPathEffect(new float[]{10, 20}, 0));
-        canvas.drawCircle((float) mW / 2, (float) mH / 2, (float) mW / 2 - 200, mTPaint);
+        canvas.drawCircle((float) mCanvW / 2, (float) mCanvH/ 2, (float) mCanvW / 2 - 200, mTPaint);
     }
 
-    private void drawTouchCircle(Canvas canvas){
+    private void drawTouchCircle_mode1(Canvas canvas){
+
         //Log.v(LOG_TAG, mMotionEvent.toString());
         mTPaint.setColor(getResources().getColor(R.color.colorPrimaryDark));
         mTPaint.setStyle(Paint.Style.FILL);
@@ -169,7 +179,7 @@ public class TeleopControl extends View {
         mMotionEventY = mMotionEvent.getRawY()-mOffsetInfo[1];
 
         if(mMotionEvent.getAction()==MotionEvent.ACTION_DOWN){
-            mHandler.postDelayed(netComms,mMetCommRate);
+            mHandler.postDelayed(netComms, mMetCommRate);
              try {
                 mNetMessage.put("ControlLevel", 1);
             }catch(JSONException e){
@@ -191,9 +201,9 @@ public class TeleopControl extends View {
                 //Log.v(LOG_TAG,"VEL: " + String.valueOf(calcAngle()));
                 //float vel = calcRadius() / 500;
                 //float angle = calcAngle();
-                float maxSpeed = 1.5f;
-                float vel = (mCircY-mMotionEventY)/(canvas.getWidth()/2)*maxSpeed;
-                float angle = (mCircX-mMotionEventX)/(canvas.getWidth()/2)*maxSpeed;
+                //float maxSpeed = 1.5f;
+                float vel = (mCircY-mMotionEventY)/(mCanvW/1.5f)*mMaxVel;
+                float angle = (mCircX-mMotionEventX)/(mCanvW/1.5f)*mMaxVel;
                 /*if(mCircY<mMotionEventY){
                     vel = vel*-1;
                 }*/
@@ -245,40 +255,16 @@ public class TeleopControl extends View {
         }
         else if(mMotionEvent.getAction()==MotionEvent.ACTION_MOVE){
             updateColor();
-            int modifier = 1;
-            float canvW = canvas.getWidth();
-            float radius = mCircY-mMotionEventY;//calcRadius();
-            if(radius<0){
-                modifier = -1;
+            int direction_modifier = 1;
+            float radius = calcRadius();//mCircY-mMotionEventY;//calcRadius();
+            if(mCircY-mMotionEventY<0){
+                direction_modifier = -1;
             }
             float radius_check = Math.abs(radius);
             Log.v(LOG_TAG, String.valueOf(radius_check));
 
-            float setRadius = 0;
-            if((0.0f<=radius_check)&&(radius_check<(canvW/10) )){
-                setRadius = 0;
-            }else if(((canvW/10)<=radius_check)&&(radius_check<(canvW/9))){
-                setRadius = 30;
-            }else if(((canvW/9)<=radius_check)&&(radius_check<(canvW/7))){
-                setRadius= 75;
-            }else if(((canvW/7)<=radius_check)&&(radius_check<(canvW/5))){
-                setRadius= 150;
-            }else if(((canvW/5)<=radius_check)&&(radius_check<(canvW/3))){
-                setRadius= 225;
-            }else if(((canvW/3)<=radius_check)&&(radius_check<(canvW/1))) {
-                setRadius = 300;
-            }else {
-                setRadius=375;
-            }
-
-            float leftOval = mCircX-setRadius;
-            float rightOval = mCircX+setRadius;
-            float topOval = mCircY-setRadius;
-            float bottomOval = mCircY+setRadius;
-            Log.v(LOG_TAG,String.valueOf(leftOval) + " " + String.valueOf(rightOval)+ " " +String.valueOf(topOval)+" " +String.valueOf(bottomOval));
-            //canvas.drawCircle(mCircX, mCircY, setRadius, mMainCircPaint);
-            canvas.drawOval(leftOval,topOval,rightOval,bottomOval,mMainCircPaint);
-
+            float setRadius = getRadius(radius_check,mCanvW);
+            canvas.drawCircle(mCircX, mCircY, setRadius, mMainCircPaint);
 
             mTPaint.setColor(getResources().getColor(R.color.colorAccent));
             canvas.drawCircle(mMotionEventX, mMotionEventY, (float) 150, mTPaint);
@@ -289,12 +275,12 @@ public class TeleopControl extends View {
                 Log.v(LOG_TAG,"VEL: " + String.valueOf(calcAngle()));
                 //float vel = calcRadius() / 500;
                 //float angle = calcAngle();
-                float maxSpeed = 1.5f;
+                //float maxSpeed = 1.5f;
                 //float vel = (mCircY-mMotionEventY)/(canvas.getWidth()/2)*maxSpeed;
                 //float vel = ((0-setRadius)/375.0f)*maxSpeed;
-                setRadius=setRadius*modifier;
-                float vel = (setRadius/375.0f)*maxSpeed;
-                float angle = (mCircX-mMotionEventX)/(canvas.getWidth()/2)*maxSpeed;
+                setRadius=setRadius*direction_modifier;
+                float vel = (setRadius/(mCanvW/1.5f))*mMaxVel;
+                float angle = (mCircX-mMotionEventX)/(canvas.getWidth()/2)*mMaxVel;
                 /*if(mCircY<mMotionEventY){
                     vel = vel*-1;
                 }*/
@@ -323,6 +309,106 @@ public class TeleopControl extends View {
         }
         mMainCircPaint.setColor(getResources().getColor(R.color.colorPrimaryDark));
 
+    }
+
+    private void drawTouchCircle_mode3(Canvas canvas){
+        //Log.v(LOG_TAG, mMotionEvent.toString());
+        mTPaint.setColor(getResources().getColor(R.color.colorPrimaryDark));
+        mTPaint.setStyle(Paint.Style.FILL);
+
+        mMotionEventX = mMotionEvent.getRawX()-mOffsetInfo[0];
+        mMotionEventY = mMotionEvent.getRawY()-mOffsetInfo[1];
+
+        if(mMotionEvent.getAction()==MotionEvent.ACTION_DOWN){
+            mHandler.postDelayed(netComms,mMetCommRate);
+            try {
+                mNetMessage.put("ControlLevel", 1);
+            }catch(JSONException e){
+                e.printStackTrace();
+            }
+
+            mCircX = mMotionEventX;
+            mCircY = mMotionEventY;
+        }
+        else if(mMotionEvent.getAction()==MotionEvent.ACTION_MOVE){
+            updateColor();
+            int direction_modifier = 1;
+            float radius_H = mCircY-mMotionEventY;//calcRadius();
+            float radius_W = mCircX-mMotionEventX;//calcRadius();
+            if(radius_H<0){
+                direction_modifier = -1;
+            }
+
+            float radius_check_H = Math.abs(radius_H);
+            float radius_check_W = Math.abs(radius_W);
+
+            float setRadius_H = getRadius(radius_check_H,mCanvW);
+            float setRadius_W = getRadius(radius_check_W,mCanvW);
+
+
+
+            float leftOval = mCircX-Math.max(setRadius_W, mCanvW / 12);
+            float rightOval = mCircX+Math.max(setRadius_W, mCanvW/12);
+            float topOval = mCircY-Math.max(setRadius_H,mCanvW/12);
+            float bottomOval = mCircY+Math.max(setRadius_H,mCanvW/12);
+
+            canvas.drawOval(leftOval, topOval, rightOval, bottomOval, mMainCircPaint);
+
+            mTPaint.setColor(getResources().getColor(R.color.colorAccent));
+            canvas.drawCircle(mMotionEventX, mMotionEventY, (float) 150, mTPaint);
+            canvas.drawLine(mCircX, mCircY, mMotionEventX, mMotionEventY, mTPaint);
+
+            try {
+                Log.v(LOG_TAG,"VEL: " + String.valueOf(calcRadius()/100));
+                Log.v(LOG_TAG,"VEL: " + String.valueOf(calcAngle()));
+                //float maxSpeed = 1.5f;
+                setRadius_H=setRadius_H*direction_modifier;
+                float vel = (setRadius_H/(mCanvW/1.5f))*mMaxVel;
+                float angle = (mCircX-mMotionEventX)/(canvas.getWidth()/2)*mMaxVel;
+                mNetMessage.put("VEL",vel);
+                mNetMessage.put("ANGLE", angle);
+            }catch(JSONException e){
+                e.printStackTrace();
+            }
+
+        }
+        else if(mMotionEvent.getAction()==MotionEvent.ACTION_UP){
+            sendStop();
+            mHandler.removeCallbacks(netComms);
+            mMotionEvent=null;
+            drawStandbyCircle(canvas);
+            try {
+                mNetMessage.put("ControlLevel", 0);
+                mNetMessage.put("VEL", 0);
+                mNetMessage.put("ANGLE", 0);
+                //Log.v(LOG_TAG,"JSON: " + mNetMessage.toString());
+            }catch(JSONException e){
+                e.printStackTrace();
+            }
+
+        }
+        mMainCircPaint.setColor(getResources().getColor(R.color.colorPrimaryDark));
+
+    }
+
+    private float getRadius(float radius_check, float canvRef){
+        float setRadius = 0;
+        if(radius_check<(canvRef/10)){
+            setRadius = 0;//canvRef/10;
+        }else if(((canvRef/10)<=radius_check)&&(radius_check<(canvRef/9))){
+            setRadius = canvRef/10;
+        }else if(((canvRef/9)<=radius_check)&&(radius_check<(canvRef/7))){
+            setRadius = canvRef/9;
+        }else if(((canvRef/7)<=radius_check)&&(radius_check<(canvRef/5))){
+            setRadius = canvRef/7;
+        }else if(((canvRef/5)<=radius_check)&&(radius_check<(canvRef/3))){
+            setRadius = canvRef/5;
+        }else if(((canvRef/3)<=radius_check)&&(radius_check<(canvRef/1))) {
+            setRadius = canvRef/3;
+        }else {
+            setRadius = canvRef/2;
+        }
+        return setRadius;
     }
 
     private void updateColor(){
@@ -368,10 +454,10 @@ public class TeleopControl extends View {
     }
 
     public void updateView(MotionEvent ev) {
-        Log.v(LOG_TAG, "in updateView()");
-        Log.v(LOG_TAG, "Canvas cleared");
+        //Log.v(LOG_TAG, "in updateView()");
+        //Log.v(LOG_TAG, "Canvas cleared");
 
-        Log.v(LOG_TAG, "Circle drawn");
+        //Log.v(LOG_TAG, "Circle drawn");
     }
 
     private void clearCanvas(Canvas canvas){
@@ -382,7 +468,18 @@ public class TeleopControl extends View {
 
 
     private void init() {
-        connect_to_server();
+        Context context = getContext();
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String ip = prefs.getString(context.getString(R.string.pref_key_ip), context.getString(R.string.pref_default_ip));
+        String ws = prefs.getString(context.getString(R.string.pref_key_ws), context.getString(R.string.pref_default_ws));
+        String uri_s = "ws://"+ip + ":" + ws + "/ws";
+        mControlMode = Integer.parseInt(prefs.getString(context.getString(R.string.pref_key_control_mode), context.getString(R.string.pref_default_control_mode)));
+        Log.v("Control Mode", String.valueOf(mControlMode));
+        mMaxVel = Float.parseFloat(prefs.getString(context.getString(R.string.pref_key_max_vel), context.getString(R.string.pref_default_max_vel)));
+
+
+        connect_to_server(uri_s);
         mHandler = new Handler();
         mNetMessage = new JSONObject();
         try {
