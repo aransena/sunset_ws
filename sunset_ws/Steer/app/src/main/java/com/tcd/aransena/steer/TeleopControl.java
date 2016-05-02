@@ -170,8 +170,10 @@ public class TeleopControl extends View {
                         drawTouchCircle_mode1(canvas);
                     } else if (mControlMode == 2) {
                         drawTouchCircle_mode2(canvas);
-                    } else {
+                    } else if (mControlMode == 3) {
                         drawTouchCircle_mode3(canvas);
+                    }else {
+                        drawTouchCircle_mode4(canvas);
                     }
                 }else{//(mMotionEvent.getAction()==MotionEvent.ACTION_UP){
                     sendStop();
@@ -201,7 +203,7 @@ public class TeleopControl extends View {
         mTPaint.setColor(getResources().getColor(R.color.colorAccent));
         mTPaint.setStyle(Paint.Style.STROKE);
         mTPaint.setPathEffect(new DashPathEffect(new float[]{10, 20}, 0));
-        canvas.drawCircle((float) mCanvW / 2, (float) mCanvH/ 2, (float) mCanvW / 2 - 200, mTPaint);
+        canvas.drawCircle((float) mCanvW / 2, (float) mCanvH / 2, (float) mCanvW / 2 - 200, mTPaint);
     }
 
     private void drawTouchCircle_mode1(Canvas canvas){
@@ -219,7 +221,16 @@ public class TeleopControl extends View {
         }*/
         //else if(mMotionEvent.getAction()==MotionEvent.ACTION_MOVE){
             updateColor();
-            canvas.drawCircle(mCircX, mCircY, calcRadius(), mMainCircPaint);
+
+        int direction_modifier = 1;
+        float radius_H = mCircY-mMotionEventY;//calcRadius();
+        if(radius_H<0){
+            direction_modifier = -1;
+        }
+        float setRadius_H = Math.abs(radius_H);
+        setRadius_H=Math.min(setRadius_H, (mCanvW / 2));
+
+        canvas.drawCircle(mCircX, mCircY, calcRadius(), mMainCircPaint);
             mTPaint.setColor(getResources().getColor(R.color.colorAccent));
             canvas.drawCircle(mMotionEventX, mMotionEventY, (float) 150, mTPaint);
             canvas.drawLine(mCircX, mCircY, mMotionEventX, mMotionEventY, mTPaint);
@@ -230,14 +241,24 @@ public class TeleopControl extends View {
                 //float vel = calcRadius() / 500;
                 //float angle = calcAngle();
                 //float maxSpeed = 1.5f;
-                float vel = (mCircY-mMotionEventY)/(mCanvW/1.5f)*mMaxVel;
-                float angle = (mCircX-mMotionEventX)/(mCanvW/1.5f)*mMaxVel;
+                float setVel_H=0;
+
+                if(setRadius_H<(mCanvW/10)){
+                    setVel_H = 0;
+                }else {
+                    setVel_H = setRadius_H * direction_modifier;
+                }
+
+                float vel = (setVel_H/(mCanvW/2))*mMaxVel;
+
+                float angle = (mCircX-mMotionEventX)/(mCanvW/2)*mMaxVel;
                 /*if(mCircY<mMotionEventY){
                     vel = vel*-1;
                 }*/
-                mNetMessage.put("VEL",vel);
+                Log.v("Vel", String.valueOf(vel));
+                mNetMessage.put("VEL", vel);
                 mNetMessage.put("ANGLE", angle);
-                Log.v(LOG_TAG,"JSON: " + mNetMessage.toString());
+                Log.v(LOG_TAG, "JSON: " + mNetMessage.toString());
             }catch(JSONException e){
                 e.printStackTrace();
             }
@@ -295,13 +316,11 @@ public class TeleopControl extends View {
             canvas.drawLine(mCircX, mCircY, mMotionEventX, mMotionEventY, mTPaint);
 
             try {
-                Log.v(LOG_TAG,"VEL: " + String.valueOf(calcRadius()/100));
-                Log.v(LOG_TAG,"VEL: " + String.valueOf(calcAngle()));
                 setRadius=setRadius*direction_modifier;
 
-                float vel = ((getRadius(Math.abs(mCircY-mMotionEventY),mCanvW)*direction_modifier)/(mCanvW/1.5f))*mMaxVel;
+                float vel = ((getRadius(Math.abs(mCircY-mMotionEventY),mCanvW)*direction_modifier)/(mCanvW/2))*mMaxVel;
                 float angle = (mCircX-mMotionEventX)/(canvas.getWidth()/2)*mMaxVel;
-                
+                Log.v("Vel", String.valueOf(vel));
                 mNetMessage.put("VEL",vel);
                 mNetMessage.put("ANGLE", angle);
                 //Log.v(LOG_TAG,"JSON: " + mNetMessage.toString());
@@ -330,7 +349,63 @@ public class TeleopControl extends View {
     }
 
     private void drawTouchCircle_mode3(Canvas canvas){
-      if(mMotionEvent.getAction()==MotionEvent.ACTION_MOVE){
+        if(mMotionEvent.getAction()==MotionEvent.ACTION_MOVE){
+            updateColor();
+            int direction_modifier = 1;
+            float radius_H = mCircY-mMotionEventY;//calcRadius();
+            float radius_W = mCircX-mMotionEventX;//calcRadius();
+            if(radius_H<0){
+                direction_modifier = -1;
+            }
+
+            //float radius_check_H = Math.abs(radius_H);
+            //float radius_check_W = Math.abs(radius_W);
+
+            //float setRadius_H = getRadius(radius_H,mCanvW);
+            //float setRadius_W = getRadius(radius_W,mCanvW);
+
+            float setRadius_H = Math.abs(radius_H);
+            float setRadius_W = Math.abs(radius_W);
+
+            setRadius_H=Math.min(setRadius_H, (mCanvW / 2));
+            setRadius_W=Math.min(setRadius_W, (mCanvW / 2));
+
+            float leftOval = mCircX-Math.max(setRadius_W/2, mCanvW / 12);
+            float rightOval = mCircX+Math.max(setRadius_W/2, mCanvW/12);
+            float topOval = mCircY-Math.max(setRadius_H/2,mCanvW/12);
+            float bottomOval = mCircY+Math.max(setRadius_H/2,mCanvW/12);
+
+            canvas.drawOval(leftOval, topOval, rightOval, bottomOval, mMainCircPaint);
+
+            mTPaint.setColor(getResources().getColor(R.color.colorAccent));
+            canvas.drawCircle(mMotionEventX, mMotionEventY, (float) 150, mTPaint);
+            canvas.drawLine(mCircX, mCircY, mMotionEventX, mMotionEventY, mTPaint);
+
+            try {
+               float setVel_H=0;
+
+                if(setRadius_H<(mCanvW/10)){
+                    setVel_H = 0;
+                }else {
+                    setVel_H = setRadius_H * direction_modifier;
+                }
+
+                float vel = (setVel_H/(mCanvW/2))*mMaxVel;
+                float angle = (mCircX-mMotionEventX)/(mCanvW/2)*mMaxVel;
+                Log.v("Vel", String.valueOf(mMaxVel) + "\t" + String.valueOf(vel));
+                mNetMessage.put("VEL",vel);
+                mNetMessage.put("ANGLE", angle);
+            }catch(JSONException e){
+                e.printStackTrace();
+            }
+
+        }
+        mMainCircPaint.setColor(getResources().getColor(R.color.colorPrimaryDark));
+
+    }
+
+    private void drawTouchCircle_mode4(Canvas canvas){
+        if(mMotionEvent.getAction()==MotionEvent.ACTION_MOVE){
             updateColor();
             int direction_modifier = 1;
             float radius_H = mCircY-mMotionEventY;//calcRadius();
@@ -359,11 +434,10 @@ public class TeleopControl extends View {
             canvas.drawLine(mCircX, mCircY, mMotionEventX, mMotionEventY, mTPaint);
 
             try {
-                Log.v(LOG_TAG,"VEL: " + String.valueOf(calcRadius()/100));
-                Log.v(LOG_TAG,"VEL: " + String.valueOf(calcAngle()));
                 //float maxSpeed = 1.5f;
                 setRadius_H=setRadius_H*direction_modifier;
-                float vel = (setRadius_H/(mCanvW/1.5f))*mMaxVel;
+                float vel = (setRadius_H/(mCanvW/2))*mMaxVel;
+                Log.v("Vel", String.valueOf(vel));
                 float angle = (mCircX-mMotionEventX)/(canvas.getWidth()/2)*mMaxVel;
                 mNetMessage.put("VEL",vel);
                 mNetMessage.put("ANGLE", angle);
@@ -386,9 +460,9 @@ public class TeleopControl extends View {
             setRadius = canvRef/9;
         }else if(((canvRef/7)<=radius_check)&&(radius_check<(canvRef/5))){
             setRadius = canvRef/7;
-        }else if(((canvRef/5)<=radius_check)&&(radius_check<(canvRef/3))){
+        }else if(((canvRef/5)<=radius_check)&&(radius_check<(canvRef/4))){
             setRadius = canvRef/5;
-        }else if(((canvRef/3)<=radius_check)&&(radius_check<(canvRef/1))) {
+        }else if(((canvRef/4)<=radius_check)&&(radius_check<(canvRef/3))) {
             setRadius = canvRef/3;
         }else {
             setRadius = canvRef/2;

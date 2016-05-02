@@ -36,14 +36,16 @@
     <string name="pref_default_control_mode">Mode 1</string>
     <string name="pref_header_control_params">Control</string>
     <string-array name="pref_control_mode_titles">
-        <item>Mode 1</item>
-        <item>Mode 2</item>
-        <item>Mode 3</item>
+        <item>Mode 1 - Circ Cont</item>
+        <item>Mode 2 - Circ Disc</item>
+        <item>Mode 3 - Oval Cont</item>
+        <item>Mode 4 - Oval Disc</item>
     </string-array>
     <string-array name="pref_control_mode_values">
         <item>1</item>
         <item>2</item>
         <item>3</item>
+        <item>4</item>
     </string-array>
 
     <string name="pref_title_max_vel">Set Robot Max Speed</string>
