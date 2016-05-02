@@ -146,12 +146,47 @@ public class TeleopControl extends View {
             if (mMotionEvent == null) {
                 drawStandbyCircle(canvas);
             } else {
-                if(mControlMode==1) {
-                    drawTouchCircle_mode1(canvas);
-                }else if(mControlMode==2){
-                    drawTouchCircle_mode2(canvas);
-                }else{
-                    drawTouchCircle_mode3(canvas);
+
+                //Log.v(LOG_TAG, mMotionEvent.toString());
+                mTPaint.setColor(getResources().getColor(R.color.colorPrimaryDark));
+                mTPaint.setStyle(Paint.Style.FILL);
+
+                mMotionEventX = mMotionEvent.getRawX()-mOffsetInfo[0];
+                mMotionEventY = mMotionEvent.getRawY()-mOffsetInfo[1];
+
+                if(mMotionEvent.getAction()==MotionEvent.ACTION_DOWN){
+                    mHandler.postDelayed(netComms, mMetCommRate);
+                    try {
+                        mNetMessage.put("ControlLevel", 1);
+                    }catch(JSONException e){
+                        e.printStackTrace();
+                    }
+
+                    mCircX = mMotionEventX;
+                    mCircY = mMotionEventY;
+                }
+                else if(mMotionEvent.getAction()==MotionEvent.ACTION_MOVE){
+                    if (mControlMode == 1) {
+                        drawTouchCircle_mode1(canvas);
+                    } else if (mControlMode == 2) {
+                        drawTouchCircle_mode2(canvas);
+                    } else {
+                        drawTouchCircle_mode3(canvas);
+                    }
+                }else{//(mMotionEvent.getAction()==MotionEvent.ACTION_UP){
+                    sendStop();
+                    mHandler.removeCallbacks(netComms);
+                    mMotionEvent=null;
+                    drawStandbyCircle(canvas);
+                    try {
+                        mNetMessage.put("ControlLevel", 0);
+                        mNetMessage.put("VEL", 0);
+                        mNetMessage.put("ANGLE", 0);
+                        //Log.v(LOG_TAG,"JSON: " + mNetMessage.toString());
+                    }catch(JSONException e){
+                        e.printStackTrace();
+                    }
+
                 }
             }
         }else{
@@ -171,14 +206,7 @@ public class TeleopControl extends View {
 
     private void drawTouchCircle_mode1(Canvas canvas){
 
-        //Log.v(LOG_TAG, mMotionEvent.toString());
-        mTPaint.setColor(getResources().getColor(R.color.colorPrimaryDark));
-        mTPaint.setStyle(Paint.Style.FILL);
-
-        mMotionEventX = mMotionEvent.getRawX()-mOffsetInfo[0];
-        mMotionEventY = mMotionEvent.getRawY()-mOffsetInfo[1];
-
-        if(mMotionEvent.getAction()==MotionEvent.ACTION_DOWN){
+        /*if(mMotionEvent.getAction()==MotionEvent.ACTION_DOWN){
             mHandler.postDelayed(netComms, mMetCommRate);
              try {
                 mNetMessage.put("ControlLevel", 1);
@@ -188,8 +216,8 @@ public class TeleopControl extends View {
 
             mCircX = mMotionEventX;
             mCircY = mMotionEventY;
-        }
-        else if(mMotionEvent.getAction()==MotionEvent.ACTION_MOVE){
+        }*/
+        //else if(mMotionEvent.getAction()==MotionEvent.ACTION_MOVE){
             updateColor();
             canvas.drawCircle(mCircX, mCircY, calcRadius(), mMainCircPaint);
             mTPaint.setColor(getResources().getColor(R.color.colorAccent));
@@ -214,7 +242,8 @@ public class TeleopControl extends View {
                 e.printStackTrace();
             }
 
-        }
+        //}
+        /*
         else if(mMotionEvent.getAction()==MotionEvent.ACTION_UP){
             sendStop();
             mHandler.removeCallbacks(netComms);
@@ -229,20 +258,15 @@ public class TeleopControl extends View {
                 e.printStackTrace();
             }
 
-        }
+        }*/
         mMainCircPaint.setColor(getResources().getColor(R.color.colorPrimaryDark));
 
     }
 
     private void drawTouchCircle_mode2(Canvas canvas){
-        //Log.v(LOG_TAG, mMotionEvent.toString());
-        mTPaint.setColor(getResources().getColor(R.color.colorPrimaryDark));
-        mTPaint.setStyle(Paint.Style.FILL);
 
-        mMotionEventX = mMotionEvent.getRawX()-mOffsetInfo[0];
-        mMotionEventY = mMotionEvent.getRawY()-mOffsetInfo[1];
 
-        if(mMotionEvent.getAction()==MotionEvent.ACTION_DOWN){
+        /*if(mMotionEvent.getAction()==MotionEvent.ACTION_DOWN){
             mHandler.postDelayed(netComms,mMetCommRate);
             try {
                 mNetMessage.put("ControlLevel", 1);
@@ -252,8 +276,8 @@ public class TeleopControl extends View {
 
             mCircX = mMotionEventX;
             mCircY = mMotionEventY;
-        }
-        else if(mMotionEvent.getAction()==MotionEvent.ACTION_MOVE){
+        }*/
+        //else if(mMotionEvent.getAction()==MotionEvent.ACTION_MOVE){
             updateColor();
             int direction_modifier = 1;
             float radius = calcRadius();//mCircY-mMotionEventY;//calcRadius();
@@ -273,17 +297,11 @@ public class TeleopControl extends View {
             try {
                 Log.v(LOG_TAG,"VEL: " + String.valueOf(calcRadius()/100));
                 Log.v(LOG_TAG,"VEL: " + String.valueOf(calcAngle()));
-                //float vel = calcRadius() / 500;
-                //float angle = calcAngle();
-                //float maxSpeed = 1.5f;
-                //float vel = (mCircY-mMotionEventY)/(canvas.getWidth()/2)*maxSpeed;
-                //float vel = ((0-setRadius)/375.0f)*maxSpeed;
                 setRadius=setRadius*direction_modifier;
-                float vel = (setRadius/(mCanvW/1.5f))*mMaxVel;
+
+                float vel = ((getRadius(Math.abs(mCircY-mMotionEventY),mCanvW)*direction_modifier)/(mCanvW/1.5f))*mMaxVel;
                 float angle = (mCircX-mMotionEventX)/(canvas.getWidth()/2)*mMaxVel;
-                /*if(mCircY<mMotionEventY){
-                    vel = vel*-1;
-                }*/
+                
                 mNetMessage.put("VEL",vel);
                 mNetMessage.put("ANGLE", angle);
                 //Log.v(LOG_TAG,"JSON: " + mNetMessage.toString());
@@ -291,7 +309,7 @@ public class TeleopControl extends View {
                 e.printStackTrace();
             }
 
-        }
+      /*  }
         else if(mMotionEvent.getAction()==MotionEvent.ACTION_UP){
             sendStop();
             mHandler.removeCallbacks(netComms);
@@ -306,31 +324,13 @@ public class TeleopControl extends View {
                 e.printStackTrace();
             }
 
-        }
+        }*/
         mMainCircPaint.setColor(getResources().getColor(R.color.colorPrimaryDark));
 
     }
 
     private void drawTouchCircle_mode3(Canvas canvas){
-        //Log.v(LOG_TAG, mMotionEvent.toString());
-        mTPaint.setColor(getResources().getColor(R.color.colorPrimaryDark));
-        mTPaint.setStyle(Paint.Style.FILL);
-
-        mMotionEventX = mMotionEvent.getRawX()-mOffsetInfo[0];
-        mMotionEventY = mMotionEvent.getRawY()-mOffsetInfo[1];
-
-        if(mMotionEvent.getAction()==MotionEvent.ACTION_DOWN){
-            mHandler.postDelayed(netComms,mMetCommRate);
-            try {
-                mNetMessage.put("ControlLevel", 1);
-            }catch(JSONException e){
-                e.printStackTrace();
-            }
-
-            mCircX = mMotionEventX;
-            mCircY = mMotionEventY;
-        }
-        else if(mMotionEvent.getAction()==MotionEvent.ACTION_MOVE){
+      if(mMotionEvent.getAction()==MotionEvent.ACTION_MOVE){
             updateColor();
             int direction_modifier = 1;
             float radius_H = mCircY-mMotionEventY;//calcRadius();
@@ -367,21 +367,6 @@ public class TeleopControl extends View {
                 float angle = (mCircX-mMotionEventX)/(canvas.getWidth()/2)*mMaxVel;
                 mNetMessage.put("VEL",vel);
                 mNetMessage.put("ANGLE", angle);
-            }catch(JSONException e){
-                e.printStackTrace();
-            }
-
-        }
-        else if(mMotionEvent.getAction()==MotionEvent.ACTION_UP){
-            sendStop();
-            mHandler.removeCallbacks(netComms);
-            mMotionEvent=null;
-            drawStandbyCircle(canvas);
-            try {
-                mNetMessage.put("ControlLevel", 0);
-                mNetMessage.put("VEL", 0);
-                mNetMessage.put("ANGLE", 0);
-                //Log.v(LOG_TAG,"JSON: " + mNetMessage.toString());
             }catch(JSONException e){
                 e.printStackTrace();
             }
