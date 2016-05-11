@@ -17,7 +17,7 @@
     <!-- Network settings -->
     <string name="pref_header_network">Network</string>
     <string name="pref_title_ip">Robot IP Address</string>
-    <string name="pref_default_ip">192.168.1.102</string>
+    <string name="pref_default_ip">192.168.1.101</string>
     <string name="pref_key_ip">ip</string>
 
     <string name="pref_title_ws">Websocket Port</string>

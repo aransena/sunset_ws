@@ -26,6 +26,11 @@ public class TeleopFragment extends Fragment {
     public TeleopFragment(){
     }
 
+    public void setTilt_frag(int tilt){
+        Log.v(LOG_TAG,"TILT");
+        //mTeleopControl.setTilt(tilt);
+    }
+
     @Override
     public void onPause() {
         mTeleopControl.stopNetComms();
@@ -69,10 +74,10 @@ public class TeleopFragment extends Fragment {
 
                 rootView.getLocationOnScreen(vLocation);
 
-                offsets[0] = (vLocation[0]-(int)rootView.getX());
-                offsets[1] = (vLocation[1]-(int)rootView.getY());
+                offsets[0] = (vLocation[0] - (int) rootView.getX());
+                offsets[1] = (vLocation[1] - (int) rootView.getY());
 
-                mTeleopControl.setMotionEventInfo(event,offsets);
+                mTeleopControl.setMotionEventInfo(event, offsets);
                 mTeleopControl.invalidate();
                 //Log.v(LOG_TAG, event.toString());
                 //  return true;
@@ -89,8 +94,8 @@ public class TeleopFragment extends Fragment {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 int touchCount = event.getPointerCount();
-                if(event.getAction()==MotionEvent.ACTION_UP){
-                    touchCount=-1;
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    touchCount = -1;
                     mTeleopControl.sendStop();
                     mTeleopControl.pauseNetComms();
                 }
@@ -105,6 +110,8 @@ public class TeleopFragment extends Fragment {
 
         return rootView;
     }
+
+
 
 
 

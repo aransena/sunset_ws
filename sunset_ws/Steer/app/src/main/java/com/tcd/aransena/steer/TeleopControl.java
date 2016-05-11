@@ -73,16 +73,17 @@ public class TeleopControl extends View {
         }catch(URISyntaxException e){
             e.printStackTrace();
         }
+
         mWebSocket = new WebSocketClient(uri) {
             @Override
             public void onOpen(ServerHandshake serverHandshake) {
-                //Log.v("Websocket", "Opened");
+                Log.v("Websocket", "Opened");
                 mWebSocket.send("USER");
             }
 
             @Override
             public void onMessage(String s) {
-                //Log.v("Websocket", "Received >" + s + "<");
+                Log.v("Websocket", "Received >" + s + "<");
                 if(s.equals("USER")){
                     Log.v("Websocket", "Starting net comms");
                     //mHandler.postDelayed(netComms, mMetCommRate);
@@ -105,8 +106,9 @@ public class TeleopControl extends View {
     private Runnable netComms = new Runnable() {
         @Override
         public void run() {
-            //Log.v(LOG_TAG,"Sending...");
+            Log.v(LOG_TAG,"Sending..."+mNetMessage.toString());
             mWebSocket.send(mNetMessage.toString());
+
             mHandler.postDelayed(this, mMetCommRate);
         }
     };
@@ -184,6 +186,7 @@ public class TeleopControl extends View {
                         mNetMessage.put("ControlLevel", 0);
                         mNetMessage.put("VEL", 0);
                         mNetMessage.put("ANGLE", 0);
+
                         //Log.v(LOG_TAG,"JSON: " + mNetMessage.toString());
                     }catch(JSONException e){
                         e.printStackTrace();
@@ -255,7 +258,7 @@ public class TeleopControl extends View {
                 /*if(mCircY<mMotionEventY){
                     vel = vel*-1;
                 }*/
-                Log.v("Vel", String.valueOf(vel));
+                //Log.v("Vel", String.valueOf(vel));
                 mNetMessage.put("VEL", vel);
                 mNetMessage.put("ANGLE", angle);
                 Log.v(LOG_TAG, "JSON: " + mNetMessage.toString());
@@ -320,7 +323,7 @@ public class TeleopControl extends View {
 
                 float vel = ((getRadius(Math.abs(mCircY-mMotionEventY),mCanvW)*direction_modifier)/(mCanvW/2))*mMaxVel;
                 float angle = (mCircX-mMotionEventX)/(canvas.getWidth()/2)*mMaxVel;
-                Log.v("Vel", String.valueOf(vel));
+                //Log.v("Vel", String.valueOf(vel));
                 mNetMessage.put("VEL",vel);
                 mNetMessage.put("ANGLE", angle);
                 //Log.v(LOG_TAG,"JSON: " + mNetMessage.toString());
@@ -392,7 +395,7 @@ public class TeleopControl extends View {
 
                 float vel = (setVel_H/(mCanvW/2))*mMaxVel;
                 float angle = (mCircX-mMotionEventX)/(mCanvW/2)*mMaxVel;
-                Log.v("Vel", String.valueOf(mMaxVel) + "\t" + String.valueOf(vel));
+                //Log.v("Vel", String.valueOf(mMaxVel) + "\t" + String.valueOf(vel));
                 mNetMessage.put("VEL",vel);
                 mNetMessage.put("ANGLE", angle);
             }catch(JSONException e){
@@ -417,7 +420,7 @@ public class TeleopControl extends View {
             float radius_check_H = Math.abs(radius_H);
             float radius_check_W = Math.abs(radius_W);
 
-            float setRadius_H = getRadius(radius_check_H,mCanvW);
+            float setRadius_H = getRadius(radius_check_H, mCanvW);
             float setRadius_W = getRadius(radius_check_W,mCanvW);
 
 
@@ -437,7 +440,7 @@ public class TeleopControl extends View {
                 //float maxSpeed = 1.5f;
                 setRadius_H=setRadius_H*direction_modifier;
                 float vel = (setRadius_H/(mCanvW/2))*mMaxVel;
-                Log.v("Vel", String.valueOf(vel));
+                //Log.v("Vel", String.valueOf(vel));
                 float angle = (mCircX-mMotionEventX)/(canvas.getWidth()/2)*mMaxVel;
                 mNetMessage.put("VEL",vel);
                 mNetMessage.put("ANGLE", angle);
@@ -546,6 +549,7 @@ public class TeleopControl extends View {
             mNetMessage.put("ControlLevel", 0);
             mNetMessage.put("VEL", 0);
             mNetMessage.put("ANGLE", 0);
+            //mNetMessage.put("TILT", 0);
         }catch(JSONException e){
             e.printStackTrace();
         }
@@ -576,11 +580,29 @@ public class TeleopControl extends View {
             mNetMessage.put("ControlLevel", 0);
             mNetMessage.put("VEL", 0);
             mNetMessage.put("ANGLE", 0);
+            //mNetMessage.put("TILT",0);
+
             mWebSocket.send(mNetMessage.toString());
+
         }catch(JSONException e){
             e.printStackTrace();
         }
     }
 
+    /*public void setTilt(int tilt){
+            Log.v(LOG_TAG,"Tilt");
+            try {
+                mNetMessage.put("TILT", tilt);
+            }
+            catch(JSONException e){
+                e.printStackTrace();
+            }
+            //mWebSocket.send("TILT_UP");
+
+        /*else{
+            Log.v(LOG_TAG,"Tilt down");
+            mWebSocket.send("TILT_DOWN");
+        }
+    }*/
 
 }

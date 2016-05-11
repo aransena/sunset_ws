@@ -1,5 +1,6 @@
 package com.tcd.aransena.steer;
 
+import android.app.FragmentManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,6 +17,13 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener{
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
+
+    public void setTilt(int tilt){
+        TeleopFragment telFrag = (TeleopFragment) getSupportFragmentManager().findFragmentById(R.id.teleop_frame);
+        Log.v(LOG_TAG,"TILT "+tilt);
+        telFrag.setTilt_frag(tilt);
+        Log.v(LOG_TAG, "TILT2");
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
