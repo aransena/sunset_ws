@@ -81,9 +81,10 @@ public class RobotCamFragment extends Fragment {
         String cam_sock = prefs.getString(context.getString(R.string.pref_key_cam_sock),context.getString(R.string.pref_default_cam_sock));
 
         String cam_url = "http://" +ip + ":" + cam_sock;
-
-        sRgbUrl = cam_url+"/stream?topic=/camera/rgb/image_raw&quality=15";
-        sDepthUrl = cam_url+"/stream?topic=/camera/depth/image&quality=15";
+        sRgbUrl = cam_url+"/stream?topic=/kinect/rgb/image_color&quality=15";
+        sDepthUrl = cam_url+"stream?topic=/kinect/depth/image&quality=15";
+        //sRgbUrl = cam_url+"/stream?topic=/camera/rgb/image_raw&quality=15";
+        //sDepthUrl = cam_url+"/stream?topic=/camera/depth/image&quality=15";
 
         //Log.v("cam_url: ", cam_url);
         super.onCreate(savedInstanceState);
