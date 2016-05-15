@@ -20,6 +20,7 @@ import android.view.View;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
+import org.java_websocket.exceptions.WebsocketNotConnectedException;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -98,10 +99,17 @@ public class TeleopControl extends View {
 
             @Override
             public void onError(Exception e) {
+
                 Log.v("Websocket", "Error " + e.getMessage());
+
             }
         };
-        mWebSocket.connect();
+        try {
+            mWebSocket.connect();
+        }catch(Exception e){
+            e.printStackTrace();
+
+        }
     }
     private Runnable netComms = new Runnable() {
         @Override
@@ -177,9 +185,10 @@ public class TeleopControl extends View {
                     }else {
                         drawTouchCircle_mode4(canvas);
                     }
-                }else{//(mMotionEvent.getAction()==MotionEvent.ACTION_UP){
+                }else if(mMotionEvent.getAction()==MotionEvent.ACTION_UP){
+                    pauseNetComms();
                     sendStop();
-                    mHandler.removeCallbacks(netComms);
+//                    Log.v("STOP","STOP");
                     mMotionEvent=null;
                     drawStandbyCircle(canvas);
                     try {
@@ -261,7 +270,7 @@ public class TeleopControl extends View {
                 //Log.v("Vel", String.valueOf(vel));
                 mNetMessage.put("VEL", vel);
                 mNetMessage.put("ANGLE", angle);
-                Log.v(LOG_TAG, "JSON: " + mNetMessage.toString());
+                //Log.v(LOG_TAG, "JSON: " + mNetMessage.toString());
             }catch(JSONException e){
                 e.printStackTrace();
             }
@@ -309,7 +318,7 @@ public class TeleopControl extends View {
                 direction_modifier = -1;
             }
             float radius_check = Math.abs(radius);
-            Log.v(LOG_TAG, String.valueOf(radius_check));
+            //Log.v(LOG_TAG, String.valueOf(radius_check));
 
             float setRadius = getRadius(radius_check,mCanvW);
             canvas.drawCircle(mCircX, mCircY, setRadius, mMainCircPaint);
@@ -537,43 +546,48 @@ public class TeleopControl extends View {
         String ws = prefs.getString(context.getString(R.string.pref_key_ws), context.getString(R.string.pref_default_ws));
         String uri_s = "ws://"+ip + ":" + ws + "/ws";
         mControlMode = Integer.parseInt(prefs.getString(context.getString(R.string.pref_key_control_mode), context.getString(R.string.pref_default_control_mode)));
-        Log.v("Control Mode", String.valueOf(mControlMode));
+        //Log.v("Control Mode", String.valueOf(mControlMode));
         mMaxVel = Float.parseFloat(prefs.getString(context.getString(R.string.pref_key_max_vel), context.getString(R.string.pref_default_max_vel)));
+        //Log.v("IP",ip);
+        if(!ip.equals("0.0.0.0")) {
+            connect_to_server(uri_s);
+
+            mHandler = new Handler();
+            mNetMessage = new JSONObject();
+            try {
+                mNetMessage.put("Device", "SmartPhone");
+                mNetMessage.put("ControlLevel", 0);
+                mNetMessage.put("VEL", 0);
+                mNetMessage.put("ANGLE", 0);
+                //mNetMessage.put("TILT", 0);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
 
 
-        connect_to_server(uri_s);
-        mHandler = new Handler();
-        mNetMessage = new JSONObject();
-        try {
-            mNetMessage.put("Device","SmartPhone");
-            mNetMessage.put("ControlLevel", 0);
-            mNetMessage.put("VEL", 0);
-            mNetMessage.put("ANGLE", 0);
-            //mNetMessage.put("TILT", 0);
-        }catch(JSONException e){
-            e.printStackTrace();
+            mTPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mTPaint.setColor(getResources().getColor(R.color.colorAccent));
+            mTPaint.setStyle(Paint.Style.STROKE);
+            mTPaint.setStrokeWidth(10);
+
+            mMainCircPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mMainCircPaint.setColor(getResources().getColor(R.color.colorPrimaryDark));
+            mMainCircPaint.setStyle(Paint.Style.FILL);
+            //mMainCircPaint.setShader(new RadialGradient(mCircX, mCircY, calcRadius(), Color.WHITE, getResources().getColor(R.color.colorPrimaryDark), Shader.TileMode.CLAMP));
         }
-
-
-        mTPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mTPaint.setColor(getResources().getColor(R.color.colorAccent));
-        mTPaint.setStyle(Paint.Style.STROKE);
-        mTPaint.setStrokeWidth(10);
-
-        mMainCircPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mMainCircPaint.setColor(getResources().getColor(R.color.colorPrimaryDark));
-        mMainCircPaint.setStyle(Paint.Style.FILL);
-        //mMainCircPaint.setShader(new RadialGradient(mCircX, mCircY, calcRadius(), Color.WHITE, getResources().getColor(R.color.colorPrimaryDark), Shader.TileMode.CLAMP));
     }
 
     public void setControlLevel(int touchCount){
         mTouchCount = touchCount;
+        //pauseNetComms();
         try {
-            mNetMessage.put("ControlLevel", (touchCount + 1));
+            mNetMessage.put("ControlLevel", (touchCount));
         }catch(JSONException e){
             e.printStackTrace();
         }
+        //mWebSocket.send(mNetMessage.toString());
     }
+
 
     public void sendStop(){
         try {

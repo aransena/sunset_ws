@@ -240,7 +240,13 @@ public class RobotCamFragment extends Fragment {
                 Log.v("Websocket", "Error " + e.getMessage());
             }
         };
-        mWebSocket.connect();
+        try {
+            mWebSocket.connect();
+        }catch(Exception e){
+            Log.v("Error", "HERE");
+            e.printStackTrace();
+
+        }
     }
     private void init() {
         Context context = getContext();
@@ -250,6 +256,9 @@ public class RobotCamFragment extends Fragment {
         String ws = prefs.getString(context.getString(R.string.pref_key_ws), context.getString(R.string.pref_default_ws));
         String uri_s = "ws://" + ip + ":" + ws + "/ws";
 
-        connect_to_server(uri_s);
+        if(!ip.equals("0.0.0.0")) {
+            Log.v("IP: ","HERE "+ip);
+            connect_to_server(uri_s);
+        }
     }
 }

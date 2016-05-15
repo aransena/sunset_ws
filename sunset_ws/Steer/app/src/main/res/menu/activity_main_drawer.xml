@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <group android:checkableBehavior="single">
+    <group android:checkableBehavior="single" android:id="@+id/upper">
         <!--<item
             android:id="@+id/nav_camera"
             android:icon="@drawable/ic_menu_camera"
@@ -19,16 +19,54 @@
             android:icon="@drawable/ic_menu_manage"
             android:title="Tools" />-->
         <item
-            android:id="@+id/nav_teleop"
+            android:id="@+id/nav_frontdoor"
             android:icon="@drawable/ic_menu_slideshow"
-            android:title="Drive" />
-
-        <!--<item
-            android:id="@+id/nav_map"
+            android:title="Frontdoor" />
+        <item
+            android:id="@+id/nav_charge"
             android:icon="@drawable/ic_menu_slideshow"
-            android:title="Map" />-->
+            android:title="Charging Station" />
+        <item
+            android:id="@+id/nav_livingroom"
+            android:icon="@drawable/ic_menu_slideshow"
+            android:title="Living Room" />
+        <item
+            android:id="@+id/nav_kitchen"
+            android:icon="@drawable/ic_menu_slideshow"
+            android:title="Kitchen" />
+        <item
+            android:id="@+id/nav_bedroom"
+            android:icon="@drawable/ic_menu_slideshow"
+            android:title="Bedroom" />
 
+    </group>
+    <group android:id="@+id/spacer">
+        <item
+            android:id="@+id/NA"
+            android:title=" " />
+    </group>
 
+    <group android:checkableBehavior="single" android:id="@+id/lower">
+        <item
+            android:id="@+id/nav_frontdoor_update"
+            android:icon="@drawable/ic_menu_manage"
+            android:title=" Update Frontdoor" />
+        <item
+            android:id="@+id/nav_charge_update"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="Update Charging Station" />
+        <item
+            android:id="@+id/nav_livingroom_update"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="Update Living Room" />
+        <item
+            android:id="@+id/nav_kitchen_update"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="Update Kitchen" />
+        <item
+            android:id="@+id/nav_bedroom_update"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="Update Bedroom" />
     </group>
 
    <!-- <item android:title="Communicate">
