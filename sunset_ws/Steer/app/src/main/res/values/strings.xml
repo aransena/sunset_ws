@@ -40,12 +40,14 @@
         <item>Mode 2 - Circ Disc</item>
         <item>Mode 3 - Oval Cont</item>
         <item>Mode 4 - Oval Disc</item>
+        <item>Mode 5 - Monitor</item>
     </string-array>
     <string-array name="pref_control_mode_values">
         <item>1</item>
         <item>2</item>
         <item>3</item>
         <item>4</item>
+        <item>5</item>
     </string-array>
 
     <string name="pref_title_max_vel">Set Robot Max Speed</string>

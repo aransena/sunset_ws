@@ -1,10 +1,12 @@
 package com.tcd.aransena.steer;
 
+import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.support.design.widget.NavigationView;
@@ -13,8 +15,11 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
+
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
@@ -53,6 +58,11 @@ public class MainActivity extends AppCompatActivity
                     Log.v("Websocket", "Starting net comms");
                     //mHandler.postDelayed(netComms, mMetCommRate);
                 }
+                else if(s.equals("LOST")){
+                    Log.v("Websocket", "LOST");
+                    //mHandler.postDelayed(netComms, mMetCommRate);
+                }
+
             }
 
             @Override
@@ -82,10 +92,15 @@ public class MainActivity extends AppCompatActivity
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.upper_container, new RobotCamFragment())
-                    .commit();
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.lower_container, new TeleopFragment())
-                    .commit();
+                   .commit();
+            try {
+                getSupportFragmentManager().beginTransaction()
+                        .add(R.id.lower_container, new TeleopFragment())
+                        .commit();
+            }catch (Exception e){
+                Log.v(LOG_TAG,e.toString());
+            }
+
 
         }
         Context context = this;
@@ -93,7 +108,7 @@ public class MainActivity extends AppCompatActivity
         String ip = prefs.getString(context.getString(R.string.pref_key_ip), context.getString(R.string.pref_default_ip));
         String ws = prefs.getString(context.getString(R.string.pref_key_ws), context.getString(R.string.pref_default_ws));
         String uri_s = "ws://" + ip + ":" + ws + "/ws";
-
+        Log.v(LOG_TAG, "IP: " + ip);
         if(!ip.equals("0.0.0.0")) {
             Log.v("IP: ", "HERE " + ip);
             connect_to_server(uri_s);
@@ -102,7 +117,6 @@ public class MainActivity extends AppCompatActivity
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
         /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -201,6 +215,8 @@ public class MainActivity extends AppCompatActivity
 
         return true;
     }
+
+
 
 
 }

@@ -4,9 +4,15 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.media.MediaPlayer;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -18,14 +24,17 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 import android.widget.VideoView;
 
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.exceptions.WebsocketNotConnectedException;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONObject;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+
 
 
 /**
@@ -86,11 +95,11 @@ public class RobotCamFragment extends Fragment {
         Context context = getContext();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String ip = prefs.getString(context.getString(R.string.pref_key_ip), context.getString(R.string.pref_default_ip));
-        String cam_sock = prefs.getString(context.getString(R.string.pref_key_cam_sock),context.getString(R.string.pref_default_cam_sock));
+        String cam_sock = prefs.getString(context.getString(R.string.pref_key_cam_sock), context.getString(R.string.pref_default_cam_sock));
 
-        String cam_url = "http://" +ip + ":" + cam_sock;
-        sRgbUrl = cam_url+"/stream?topic=/kinect/rgb/image_color&quality=15";
-        sDepthUrl = cam_url+"/stream?topic=/kinect/depth/image&quality=15";
+        String cam_url = "http://" + ip + ":" + cam_sock;
+        sRgbUrl = cam_url + "/stream?topic=/kinect/rgb/image_color&quality=15";
+        sDepthUrl = cam_url + "/stream?topic=/kinect/depth/image&quality=15";
 
 
         init();
@@ -130,42 +139,49 @@ public class RobotCamFragment extends Fragment {
         });
 
         mWebView.setOnTouchListener(new View.OnTouchListener() {
-            float startX,startY,endX,endY;
-
+            float startX, startY, endX, endY;
 
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    startX=event.getX();
-                    startY=event.getY();
+                    startX = event.getX();
+                    startY = event.getY();
 
                     return false;
                 }
 
-                if(event.getAction() == MotionEvent.ACTION_MOVE){
+                if (event.getAction() == MotionEvent.ACTION_MOVE) {
                     return true;
                 }
 
                 if (event.getAction() == MotionEvent.ACTION_UP) {
-                    endX=event.getX();
-                    endY=event.getY();
-                    if(endX>startX && endX-startX > 100){
+                    endX = event.getX();
+                    endY = event.getY();
+                    if (endX > startX && endX - startX > 100) {
                         //Log.v(LOG_TAG,"SWIPE RIGHT");
                         mWebView.loadUrl(sRgbUrl);
-                    }
-                    else if(endX<startX && startX-endX> 100){
+                    } else if (endX < startX && startX - endX > 100) {
                         //Log.v(LOG_TAG,"SWIPE LEFT"+sDepthUrl);
                         mWebView.loadUrl(sDepthUrl);
-                    }
-                    else if(endY>startY && endY-startY> 100){
+                    } else if (endY > startY && endY - startY > 100) {
                         Log.v(LOG_TAG, "SWIPE DOWN");
-                        mWebSocket.send("TILT_DOWN");
+                        try {
+                            mWebSocket.send("TILT_DOWN");
+                        } catch (WebsocketNotConnectedException e) {
+                            Log.v(LOG_TAG, e.toString());
+                            init();
+                        }
                         //((MainActivity)mAct).setTilt(-1);
-                    }
-                    else if(endY<startY && startY-endY> 100){
+                    } else if (endY < startY && startY - endY > 100) {
                         Log.v(LOG_TAG, "SWIPE UP");
-                        mWebSocket.send("TILT_UP");
+                        try {
+
+                            mWebSocket.send("TILT_UP");
+                        } catch (WebsocketNotConnectedException e) {
+                            Log.v(LOG_TAG, e.toString());
+                            init();
+                        }
                         //((MainActivity)mAct).setTilt(1);
                     }
 
@@ -187,13 +203,13 @@ public class RobotCamFragment extends Fragment {
             }
         });
 
-            //videoView.requestFocus();
-            //videoView.start();
-            //mc.show();
-            //Log.v(LOG_TAG,"in fragment");
+        //videoView.requestFocus();
+        //videoView.start();
+        //mc.show();
+        //Log.v(LOG_TAG,"in fragment");
 
-            return rootView;
-        }
+        return rootView;
+    }
 
     private int getScale() {
 
@@ -203,14 +219,14 @@ public class RobotCamFragment extends Fragment {
         return val.intValue();
     }
 
-    public void connect_to_server(String uri_s){
+    public void connect_to_server(String uri_s) {
 
-        URI uri=null;
-        Log.v(LOG_TAG,"uri_s: "+uri_s);
-        try{
+        URI uri = null;
+        Log.v(LOG_TAG, "uri_s: " + uri_s);
+        try {
             //uri = new URI("ws://192.168.1.102:8888/ws");
             uri = new URI(uri_s);
-        }catch(URISyntaxException e){
+        } catch (URISyntaxException e) {
             e.printStackTrace();
         }
         mWebSocket = new WebSocketClient(uri) {
@@ -222,11 +238,64 @@ public class RobotCamFragment extends Fragment {
 
             @Override
             public void onMessage(String s) {
-                //Log.v("Websocket", "Received >" + s + "<");
-                if(s.equals("USER")){
+                //Log.v("Websocket_cam frag", "Received >" + s + "<");
+                CharSequence cs = "NAV";
+
+                if (s.equals("USER")) {
                     Log.v("Websocket", "Starting net comms");
                     //mHandler.postDelayed(netComms, mMetCommRate);
                 }
+                else if (s.contains(cs)) { //if the received string has the "NAV" tag...
+                    final String nav_msg = s;
+                    Log.v("Websocket", "Starting net comms");
+                    getActivity().runOnUiThread(new Runnable() {
+                        public void run() {
+
+                            int delay = 0;
+                            int mode = 0;
+                            if(nav_msg.contains("lost")){
+                                delay = 2000;
+                                mode = Toast.LENGTH_LONG;
+                                try {
+                                    Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                                    Ringtone r = RingtoneManager.getRingtone(getContext(), notification);
+                                    r.play();
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                                try{
+                                    Vibrator vibrate = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+                                    vibrate.vibrate(50);
+                                }catch(Exception e){
+                                    e.printStackTrace();
+                                }
+                            }
+                            else{
+                                delay = 500;
+                                mode = Toast.LENGTH_SHORT;
+                            }
+
+                            final Toast toast = Toast.makeText(getActivity(), nav_msg.substring(4),mode);
+                            toast.setGravity(Gravity.TOP|Gravity.CENTER, 0, 0);
+                            toast.show();
+
+                            final int toast_delay = delay;
+
+                            Handler handler = new Handler();
+                            handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    toast.cancel();
+                                }
+                            }, toast_delay);
+
+                        }
+                    });
+
+                    //mHandler.postDelayed(netComms, mMetCommRate);
+                }
+
+
             }
 
             @Override
@@ -242,12 +311,13 @@ public class RobotCamFragment extends Fragment {
         };
         try {
             mWebSocket.connect();
-        }catch(Exception e){
+        } catch (Exception e) {
             Log.v("Error", "HERE");
             e.printStackTrace();
 
         }
     }
+
     private void init() {
         Context context = getContext();
 
@@ -256,9 +326,12 @@ public class RobotCamFragment extends Fragment {
         String ws = prefs.getString(context.getString(R.string.pref_key_ws), context.getString(R.string.pref_default_ws));
         String uri_s = "ws://" + ip + ":" + ws + "/ws";
 
-        if(!ip.equals("0.0.0.0")) {
-            Log.v("IP: ","HERE "+ip);
+        if (!ip.equals("0.0.0.0")) {
+            Log.v("IP: ", "HERE " + ip);
             connect_to_server(uri_s);
         }
+
     }
+
+
 }

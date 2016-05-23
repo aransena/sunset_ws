@@ -67,7 +67,7 @@ public class TeleopControl extends View {
     public void connect_to_server(String uri_s){
 
         URI uri=null;
-        Log.v(LOG_TAG,"uri_s: "+uri_s);
+        Log.v(LOG_TAG, "uri_s: " + uri_s);
         try{
             //uri = new URI("ws://192.168.1.102:8888/ws");
             uri = new URI(uri_s);
@@ -154,8 +154,11 @@ public class TeleopControl extends View {
 
         if(mTouchCount<1) {
             if (mMotionEvent == null) {
-                drawStandbyCircle(canvas);
+                if(canvas!=null) {
+                    drawStandbyCircle(canvas);
+                }
             } else {
+
 
                 //Log.v(LOG_TAG, mMotionEvent.toString());
                 mTPaint.setColor(getResources().getColor(R.color.colorPrimaryDark));
@@ -163,7 +166,10 @@ public class TeleopControl extends View {
 
                 mMotionEventX = mMotionEvent.getRawX()-mOffsetInfo[0];
                 mMotionEventY = mMotionEvent.getRawY()-mOffsetInfo[1];
-
+                if(mControlMode==5 && mMotionEvent.getAction()==MotionEvent.ACTION_DOWN){
+                    mWebSocket.send("COLLISION");
+                }
+                else
                 if(mMotionEvent.getAction()==MotionEvent.ACTION_DOWN){
                     mHandler.postDelayed(netComms, mMetCommRate);
                     try {
@@ -212,10 +218,14 @@ public class TeleopControl extends View {
     }
 
     private void drawStandbyCircle(Canvas canvas){
-        mTPaint.setColor(getResources().getColor(R.color.colorAccent));
-        mTPaint.setStyle(Paint.Style.STROKE);
-        mTPaint.setPathEffect(new DashPathEffect(new float[]{10, 20}, 0));
-        canvas.drawCircle((float) mCanvW / 2, (float) mCanvH / 2, (float) mCanvW / 2 - 200, mTPaint);
+        try {
+            mTPaint.setColor(getResources().getColor(R.color.colorAccent));
+            mTPaint.setStyle(Paint.Style.STROKE);
+            mTPaint.setPathEffect(new DashPathEffect(new float[]{10, 20}, 0));
+            canvas.drawCircle((float) mCanvW / 2, (float) mCanvH / 2, (float) mCanvW / 2 - 200, mTPaint);
+        }catch(Exception e){
+
+        }
     }
 
     private void drawTouchCircle_mode1(Canvas canvas){
@@ -539,17 +549,25 @@ public class TeleopControl extends View {
 
 
     private void init() {
+
         Context context = getContext();
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String ip = prefs.getString(context.getString(R.string.pref_key_ip), context.getString(R.string.pref_default_ip));
         String ws = prefs.getString(context.getString(R.string.pref_key_ws), context.getString(R.string.pref_default_ws));
         String uri_s = "ws://"+ip + ":" + ws + "/ws";
-        mControlMode = Integer.parseInt(prefs.getString(context.getString(R.string.pref_key_control_mode), context.getString(R.string.pref_default_control_mode)));
+
+        try {
+            mControlMode = Integer.parseInt(prefs.getString(context.getString(R.string.pref_key_control_mode), context.getString(R.string.pref_default_control_mode)));
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
         //Log.v("Control Mode", String.valueOf(mControlMode));
         mMaxVel = Float.parseFloat(prefs.getString(context.getString(R.string.pref_key_max_vel), context.getString(R.string.pref_default_max_vel)));
-        //Log.v("IP",ip);
+
         if(!ip.equals("0.0.0.0")) {
+
             connect_to_server(uri_s);
 
             mHandler = new Handler();
@@ -575,6 +593,7 @@ public class TeleopControl extends View {
             mMainCircPaint.setStyle(Paint.Style.FILL);
             //mMainCircPaint.setShader(new RadialGradient(mCircX, mCircY, calcRadius(), Color.WHITE, getResources().getColor(R.color.colorPrimaryDark), Shader.TileMode.CLAMP));
         }
+        Log.v(LOG_TAG, "Create Teleop Control");
     }
 
     public void setControlLevel(int touchCount){

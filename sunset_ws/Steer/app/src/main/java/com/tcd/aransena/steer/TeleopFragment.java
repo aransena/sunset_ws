@@ -41,11 +41,14 @@ public class TeleopFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         // Inflate the layout for this fragment
         final View rootView = inflater.inflate(R.layout.fragment_teleop, container, false);
 
         FrameLayout fl = (FrameLayout) rootView.findViewById(R.id.teleop_frame);
+        Log.v(LOG_TAG, "Create Teleop Fragment" + getContext().toString());
         mTeleopControl = new TeleopControl(getContext());
+
         fl.addView(mTeleopControl);
 
         //Log.v(LOG_TAG, "Getting frame");
@@ -89,6 +92,7 @@ public class TeleopFragment extends Fragment {
             }
 
         });
+        Log.v(LOG_TAG, "touch listener 1");
 
         mSemiAutoControl.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -112,7 +116,7 @@ public class TeleopFragment extends Fragment {
                     if (event.getAction() == 262 || event.getAction() == 518 || event.getAction() == 774) {
                         touchCount -= 1;
                     }
-                    touchCount+=1;
+                    touchCount += 1;
                     Log.v(LOG_TAG, String.valueOf(touchCount));
 
                     mSemiAutoControl.setControlLevel(touchCount);
@@ -125,13 +129,13 @@ public class TeleopFragment extends Fragment {
 
                     return true;
                 }
-                else{}
 
                 return true;
 
             }
-        });
 
+        });
+        Log.v(LOG_TAG, "touch listener 2");
 
         return rootView;
     }
