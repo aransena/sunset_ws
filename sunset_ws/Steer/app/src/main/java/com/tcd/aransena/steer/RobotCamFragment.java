@@ -261,12 +261,35 @@ public class RobotCamFragment extends Fragment {
                                     Ringtone r = RingtoneManager.getRingtone(getContext(), notification);
                                     r.play();
                                 } catch (Exception e) {
+                                    Log.v(LOG_TAG,e.toString());
                                     e.printStackTrace();
                                 }
                                 try{
                                     Vibrator vibrate = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
-                                    vibrate.vibrate(50);
+                                    long[] pattern = {50,50,50,50,50,50,50,50,50,50};
+                                    vibrate.vibrate(pattern,-1);
                                 }catch(Exception e){
+                                    Log.v(LOG_TAG,e.toString());
+                                    e.printStackTrace();
+                                }
+                            }
+                            else if(nav_msg.contains("goal")){
+                                delay = 2000;
+                                mode = Toast.LENGTH_LONG;
+                                try {
+                                    Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                                    Ringtone r = RingtoneManager.getRingtone(getContext(), notification);
+                                    r.play();
+                                } catch (Exception e) {
+                                    Log.v(LOG_TAG,e.toString());
+                                    e.printStackTrace();
+                                }
+                                try{
+                                    Vibrator vibrate = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+                                    //long[] pattern = {50,50,50,50,50,50,50,50,50,50};
+                                    vibrate.vibrate(1000);
+                                }catch(Exception e){
+                                    Log.v(LOG_TAG,e.toString());
                                     e.printStackTrace();
                                 }
                             }
