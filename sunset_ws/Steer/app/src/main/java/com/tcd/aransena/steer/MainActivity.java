@@ -100,6 +100,14 @@ public class MainActivity extends AppCompatActivity
             }catch (Exception e){
                 Log.v(LOG_TAG,e.toString());
             }
+            try {
+                getSupportFragmentManager().beginTransaction()
+                        .add(R.id.side_container, new LowerCamsFragment())
+                        .commit();
+            }catch (Exception e){
+                Log.v(LOG_TAG,e.toString());
+            }
+
 
 
         }
