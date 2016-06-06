@@ -6,12 +6,15 @@
     tools:context="com.tcd.aransena.steer.RobotCamFragment">
 
 
-    <WebView
-        android:layout_width="match_parent"
+
+        <WebView
+        android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:id="@+id/robot_cam_videoview"
         android:layout_weight="2"
-        android:nestedScrollingEnabled="true" />
+        android:nestedScrollingEnabled="false"
+        android:layout_gravity="center_horizontal"
+            android:foregroundGravity="center_horizontal|clip_horizontal" />
 
 
 

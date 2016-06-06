@@ -1,12 +1,9 @@
 package com.tcd.aransena.steer;
 
-import android.app.Activity;
-import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.support.design.widget.NavigationView;
@@ -15,10 +12,8 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -33,53 +28,56 @@ public class MainActivity extends AppCompatActivity
     private final String LOG_TAG = MainActivity.class.getSimpleName();
     private WebSocketClient mWebSocket;
 
-
     public void connect_to_server(String uri_s){
+    // called during initialisation
+    // input arg: address of websocket server to connect to
 
         URI uri=null;
-        Log.v(LOG_TAG, "uri_s: " + uri_s);
+
+        //Log.v(LOG_TAG, "uri_s: " + uri_s);
+
         try{
-            //uri = new URI("ws://192.168.1.102:8888/ws");
-            uri = new URI(uri_s);
+            uri = new URI(uri_s); // check if valid URI
         }catch(URISyntaxException e){
             e.printStackTrace();
         }
+
+        // create a new websocket client with provided URI
         mWebSocket = new WebSocketClient(uri) {
             @Override
             public void onOpen(ServerHandshake serverHandshake) {
+            // called when connection to server made
                 //Log.v("Websocket", "Opened");
+
+                // Register with the websocket server.
+                // This could be replaced with a device ID/username/etc.
                 mWebSocket.send("USER");
+
             }
 
             @Override
             public void onMessage(String s) {
+            // called whenever the client recieves a message from the server
                 //Log.v("Websocket", "Received >" + s + "<");
-                if(s.equals("USER")){
-                    Log.v("Websocket", "Starting net comms");
-                    //mHandler.postDelayed(netComms, mMetCommRate);
-                }
-                else if(s.equals("LOST")){
-                    Log.v("Websocket", "LOST");
-                    //mHandler.postDelayed(netComms, mMetCommRate);
-                }
-
             }
 
             @Override
             public void onClose(int code, String s, boolean b) {
+            // called whenever the client recieves a message from the server
                 //Log.v("Websocket", code + ": Closed " + s);
-
             }
 
             @Override
             public void onError(Exception e) {
-                Log.v("Websocket", "Error " + e.getMessage());
+            // called whenever the client experiences an error
+                //Log.v("Websocket", "Error " + e.getMessage());
             }
         };
+
         try {
-            mWebSocket.connect();
+            mWebSocket.connect(); // Try use configured websocket client
         }catch(Exception e){
-            Log.v("Error", "HERE");
+            //Log.v("Error", "Websocket client error");
             e.printStackTrace();
 
         }
@@ -87,31 +85,44 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+    // Called as part of app activity lifecycle during start up.
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // At start up, load in the required Fragments
         if (savedInstanceState == null) {
+            // Find location to load fragment by ID, load Kinect view camera fragment
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.upper_container, new RobotCamFragment())
                    .commit();
             try {
+                // Find location to load fragment by ID, load teleoperation fragment
                 getSupportFragmentManager().beginTransaction()
                         .add(R.id.lower_container, new TeleopFragment())
                         .commit();
             }catch (Exception e){
                 Log.v(LOG_TAG,e.toString());
             }
-            try {
-                getSupportFragmentManager().beginTransaction()
-                        .add(R.id.side_container, new LowerCamsFragment())
-                        .commit();
-            }catch (Exception e){
-                Log.v(LOG_TAG,e.toString());
+            // If the id side_container is not found, we assume we are using a smartphone.
+            // If the id is found, we assume device is a tablet and the fragment is loaded.
+
+            if (findViewById(R.id.side_container)!=null) {
+                try {
+                    // Find location to load fragment by ID, load side view cameras fragment
+                    getSupportFragmentManager().beginTransaction()
+                            .add(R.id.side_container, new LowerCamsFragment())
+                            .commit();
+                } catch (Exception e) {
+                    Log.v(LOG_TAG, e.toString());
+                }
             }
-
-
-
         }
+
         Context context = this;
+
+        // Retrieve Websocket URI based on IP address stored in memory.
+        // IP set from Settings Activity
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String ip = prefs.getString(context.getString(R.string.pref_key_ip), context.getString(R.string.pref_default_ip));
         String ws = prefs.getString(context.getString(R.string.pref_key_ws), context.getString(R.string.pref_default_ws));
@@ -119,20 +130,11 @@ public class MainActivity extends AppCompatActivity
         Log.v(LOG_TAG, "IP: " + ip);
         if(!ip.equals("0.0.0.0")) {
             Log.v("IP: ", "HERE " + ip);
-            connect_to_server(uri_s);
+            connect_to_server(uri_s); // If IP found, connect to the server
         }
-
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });*/
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -146,6 +148,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
+    // Handle back button presses
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
@@ -183,6 +186,7 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
+        // Used to set autonomous nav goal
         if (id == R.id.nav_frontdoor){
             mWebSocket.send("LOCATION,FRONT_DOOR");
         }
@@ -198,6 +202,7 @@ public class MainActivity extends AppCompatActivity
         else if (id == R.id.nav_bedroom){
             mWebSocket.send("LOCATION,BEDROOM");
         }
+        // Used to update location of autonomous nav goal
         else if (id == R.id.nav_frontdoor_update){
             mWebSocket.send("UPDATE,FRONT_DOOR");
         }
@@ -214,17 +219,9 @@ public class MainActivity extends AppCompatActivity
             mWebSocket.send("UPDATE,BEDROOM");
         }
 
-        /*else if (id == R.id.nav_map) {
-            Log.v(LOG_TAG, "nav_map selected");
-        }*/
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
 
         return true;
     }
-
-
-
-
 }

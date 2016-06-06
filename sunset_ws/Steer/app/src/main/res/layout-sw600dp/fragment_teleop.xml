@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- teleoperation fragment layout for large screens : A. Sena 2016 -->
 
 <LinearLayout
     android:orientation="vertical"

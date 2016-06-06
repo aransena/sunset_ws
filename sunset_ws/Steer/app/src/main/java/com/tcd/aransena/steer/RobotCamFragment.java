@@ -14,6 +14,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
@@ -130,12 +131,24 @@ public class RobotCamFragment extends Fragment {
         mWebView.loadUrl(mUrl);
         //Log.v(LOG_TAG, String.valueOf(mWebView.getProgress()));
 
-        mWebView.setWebViewClient(new WebViewClient() {
 
-            public void onPageFinished(WebView view, String url) {
-                mWebView.setInitialScale(getScale());
-                // do your stuff here
+        mWebView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onLoadResource(WebView view, String url) {
+                super.onLoadResource(view, url);
+                //Float zoom = getScale();
+                //mWebView.zoomBy(zoom);
+
+                int zoom = getScale();
+                mWebView.setInitialScale(zoom);
+                //mWebView.computeScroll();
+
+                //int scroll = (mWebView.getWidth()-640)/2;
+                //Log.v(LOG_TAG, "Scroll: " + String.valueOf(scroll));
+
+                //mWebView.scrollBy(0, 20);
             }
+
         });
 
         mWebView.setOnTouchListener(new View.OnTouchListener() {
@@ -182,18 +195,8 @@ public class RobotCamFragment extends Fragment {
                             Log.v(LOG_TAG, e.toString());
                             init();
                         }
-                        //((MainActivity)mAct).setTilt(1);
+
                     }
-
-                    /*if (mUrl == sRgbUrl) {
-                        mUrl = sDepthUrl;
-                    } else {
-                        mUrl = sRgbUrl;
-                    }*/
-
-                    //Log.v(LOG_TAG, mUrl);
-                    //mUrl = sRgbUrl;
-                    //mWebView.loadUrl(mUrl);
 
                     return true;
                 }
@@ -203,10 +206,6 @@ public class RobotCamFragment extends Fragment {
             }
         });
 
-        //videoView.requestFocus();
-        //videoView.start();
-        //mc.show();
-        //Log.v(LOG_TAG,"in fragment");
 
         return rootView;
     }
@@ -214,9 +213,15 @@ public class RobotCamFragment extends Fragment {
     private int getScale() {
 
         int width = mWebView.getWidth();
-        Double val = new Double(width) / new Double(640);
-        val = val * 100d;
-        return val.intValue();
+        int height = mWebView.getHeight();
+
+        //Double val = new Double(width) / new Double(640);
+        //Double val = new Double(640)/new Double(width);
+        float val = height/(float)480;
+        Log.v(LOG_TAG, "Raw scale: " + String.valueOf(val));
+        val = val * 100;
+        Log.v(LOG_TAG, "Scale value: " + String.valueOf(val) + "\tHeight: " + String.valueOf(height));
+        return Math.round(val);
     }
 
     public void connect_to_server(String uri_s) {

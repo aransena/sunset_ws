@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Colours definition file: A. Sena 2016 -->
+
 <resources>
     <color name="colorPrimary">#4db6ac</color>
     <color name="colorPrimaryDark">#26a69a</color>

@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Fragements layout file for large screens : A. Sena 2016 -->
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -37,13 +39,6 @@
             android:layout_weight="6">
         </FrameLayout>
     </LinearLayout>
-
-    <!--<fragment
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:name="com.tcd.aransena.steer.RobotCamFragment"
-        android:layout_gravity="center_horizontal"></fragment>-->
-
 
 
 </LinearLayout>
