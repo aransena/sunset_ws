@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Vibrator;
@@ -99,8 +100,10 @@ public class RobotCamFragment extends Fragment {
         String cam_sock = prefs.getString(context.getString(R.string.pref_key_cam_sock), context.getString(R.string.pref_default_cam_sock));
 
         String cam_url = "http://" + ip + ":" + cam_sock;
-        sRgbUrl = cam_url + "/stream?topic=/kinect/rgb/image_color&quality=15";
-        sDepthUrl = cam_url + "/stream?topic=/kinect/depth/image&quality=15";
+        //sRgbUrl = cam_url + "/stream?topic=/kinect/rgb/image_color&quality=15";
+        http://0.0.0.0:8080/stream_viewer?topic=/usb_cam/image_raw&bitrate=25000&type=vp8&quality=1
+        sRgbUrl = cam_url + "/stream_viewer?topic=/kinect/rgb/image_color&quality=8";
+        sDepthUrl = cam_url + "/stream?topic=/kinect/depth/image&quality=8";
 
 
         init();
@@ -126,6 +129,14 @@ public class RobotCamFragment extends Fragment {
 
         //final VideoView videoView = (VideoView) rootView.findViewById(R.id.robot_cam_videoview);
         mWebView = (WebView) rootView.findViewById(R.id.robot_cam_videoview);
+        mWebView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+        if (Build.VERSION.SDK_INT >= 19) {
+            // chromium, enable hardware acceleration
+            mWebView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        } else {
+            // older android version, disable hardware acceleration
+            mWebView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        }
 
         mUrl = sRgbUrl;
         mWebView.loadUrl(mUrl);
